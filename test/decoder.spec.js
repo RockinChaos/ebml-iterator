@@ -5,7 +5,7 @@ import 'jasmine'
 import EbmlTagPosition from '../src/models/enums/EbmlTagPosition.js'
 import EbmlElementType from '../src/models/enums/EbmlElementType.js'
 
-describe('EBML', () => {
+describe('EBML Decoder', () => {
   describe('Decoder', () => {
     // it('should wait for more data if a tag is longer than the buffer', () => {
     //   const decoder = new Decoder()
@@ -79,7 +79,7 @@ describe('EBML', () => {
         assert.strictEqual(tag.id.toString(16), '1a45dfa3')
         assert.strictEqual(tag.size, 0)
         assert.strictEqual(tag.type, EbmlElementType.Master)
-        assert.strictEqual(tag.data, undefined) // eslint-disable-line no-undefined
+        assert.strictEqual(tag.data, undefined)
       }
     })
 
@@ -97,7 +97,7 @@ describe('EBML', () => {
           assert.strictEqual(tag.id.toString(16), '1a45dfa3')
           assert.strictEqual(tag.size, 4)
           assert.strictEqual(tag.type, EbmlElementType.Master)
-          assert.strictEqual(tag.data, undefined) // eslint-disable-line no-undefined
+          assert.strictEqual(tag.data, undefined)
         } else {
           tags += 1
         }

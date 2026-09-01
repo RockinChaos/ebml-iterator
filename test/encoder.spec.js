@@ -36,7 +36,7 @@ const ebmlVersion0Tag = Object.assign(EbmlTagFactory.create(EbmlTagId.EBMLVersio
   data: 0
 })
 
-describe('EBML', () => {
+describe('EBML Encoder', () => {
   describe('Encoder', () => {
     function createEncoder (expected, done, data) {
       const encoder = new EbmlIteratorEncoder()

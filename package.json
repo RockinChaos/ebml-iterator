@@ -32,8 +32,8 @@
     "src/*"
   ],
   "devDependencies": {
-    "assert": "^2.0.0",
+    "assert": "^2.1.0",
     "ebml-stream": "^1.0.3",
-    "jasmine": "^4.5.0"
+    "jasmine": "^7.0.0"
   }
 }

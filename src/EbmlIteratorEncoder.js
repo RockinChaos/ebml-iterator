@@ -8,7 +8,7 @@ export default class EbmlIteratorEncoder {
     this.openTags = []
   }
 
-  async * [Symbol.asyncIterator] (stream) {
+  async * [Symbol.asyncIterator] (stream = this._stream) {
     for await (const tag of stream) {
       const chunk = this.processTag(tag)
       if (chunk) yield chunk

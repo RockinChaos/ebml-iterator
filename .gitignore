@@ -1,1 +1,21 @@
+# OS Specific
+.DS_Store
+
+# Build output
+**/dist/
+**/build/
+
+# Dependencies
 node_modules
+**/*.der
+**/*.pem
+**/*.keystore
+**/*.jks
+**/node_modules
+**/git_modules/
+
+package-lock.json
+
+.gitignore
+
+.idea

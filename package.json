@@ -1,7 +1,9 @@
 {
-  "name": "ebml-iterator",
   "version": "1.0.5",
-  "description": "",
+  "name": "@rockinchaos/ebml-iterator",
+  "license": "MIT",
+  "packageManager": "pnpm@10.34.1",
+  "description": "A minimal, dependency-free EBML streaming parser and encoder for Node.js.",
   "type": "module",
   "main": "src/index.js",
   "scripts": {
@@ -9,11 +11,26 @@
     "reencode": "node test/reencode.spec.js"
   },
   "keywords": [],
-  "author": "",
+  "author": {
+    "name": "RockinChaos",
+    "url": "https://github.com/RockinChaos"
+  },
+  "contributors": [
+    {
+      "name": "ThaUnknown",
+      "url": "https://github.com/ThaUnknown"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RockinChaos/ebml-iterator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RockinChaos/ebml-iterator/issues"
+  },
   "files": [
     "src/*"
   ],
-  "license": "MIT",
   "devDependencies": {
     "assert": "^2.0.0",
     "ebml-stream": "^1.0.3",

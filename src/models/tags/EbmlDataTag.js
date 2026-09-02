@@ -4,11 +4,11 @@ import Tools from '../../tools.js'
 import EbmlTagPosition from '../enums/EbmlTagPosition.js'
 
 export default class EbmlDataTag extends EbmlTag {
-  constructor (id, type) {
+  constructor(id, type) {
     super(id, type, EbmlTagPosition.Content)
   }
 
-  parseContent (data) {
+  parseContent(data) {
     switch (this.type) {
       case EbmlElementType.UnsignedInt:
         this.data = Tools.readUnsigned(data)
@@ -31,14 +31,14 @@ export default class EbmlDataTag extends EbmlTag {
     }
   }
 
-  encodeContent () {
+  encodeContent() {
     switch (this.type) {
       case EbmlElementType.UnsignedInt:
-        return Tools.writeUnsigned(this.data)
+        return Tools.writeUnsigned(this.data, this.size)
       case EbmlElementType.Float:
-        return Tools.writeFloat(this.data)
+        return Tools.writeFloat(this.data, this.size)
       case EbmlElementType.Integer:
-        return Tools.writeSigned(this.data)
+        return Tools.writeSigned(this.data, this.size)
       case EbmlElementType.String:
         return Buffer.from(this.data, 'ascii')
       case EbmlElementType.UTF8:

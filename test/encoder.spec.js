@@ -5,6 +5,7 @@ import 'jasmine'
 import EbmlTagId from '../src/models/enums/EbmlTagId.js'
 import EbmlTagPosition from '../src/models/enums/EbmlTagPosition.js'
 import EbmlTagFactory from '../src/models/EbmlTagFactory.js'
+import Tools from '../src/tools.js'
 
 const invalidTag = {
   id: undefined,
@@ -38,7 +39,7 @@ const ebmlVersion0Tag = Object.assign(EbmlTagFactory.create(EbmlTagId.EBMLVersio
 
 describe('EBML Encoder', () => {
   describe('Encoder', () => {
-    function createEncoder (expected, done, data) {
+    function createEncoder(expected, done, data) {
       const encoder = new EbmlIteratorEncoder()
       for (const item of data) {
         const chunk = encoder.processTag(item)
@@ -94,6 +95,13 @@ describe('EBML Encoder', () => {
           /No id found/,
           'Not throwing properly'
         )
+      })
+    })
+    describe('signed integer encoding', () => {
+      it('uses a width the decoder can read', () => {
+        assert.deepStrictEqual(Tools.writeSigned(-1), Buffer.from([0xff]))
+        assert.deepStrictEqual(Tools.writeSigned(-129), Buffer.from([0xff, 0x7f]))
+        assert.deepStrictEqual(Tools.writeSigned(-32769), Buffer.from([0xff, 0xff, 0x7f, 0xff]))
       })
     })
   })

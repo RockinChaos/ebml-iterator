@@ -3,11 +3,11 @@ import Block from './Block.js'
 import EbmlTagId from '../enums/EbmlTagId.js'
 
 export default class SimpleBlock extends Block {
-  constructor () {
+  constructor() {
     super(EbmlTagId.SimpleBlock)
   }
 
-  encodeContent () {
+  encodeContent() {
     const flags = this.writeFlagsBuffer()
     if (this.keyframe) {
       flags[0] |= 0x80
@@ -23,7 +23,7 @@ export default class SimpleBlock extends Block {
     ])
   }
 
-  parseContent (data) {
+  parseContent(data) {
     super.parseContent(data)
     const track = Tools.readVint(data)
     const flags = data[track.length + 2]

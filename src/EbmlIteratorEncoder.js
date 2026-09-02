@@ -2,20 +2,20 @@ import EbmlTagPosition from './models/enums/EbmlTagPosition.js'
 import EbmlTagId from './models/enums/EbmlTagId.js'
 
 export default class EbmlIteratorEncoder {
-  constructor ({ stream } = {}) {
+  constructor({ stream } = {}) {
     this._stream = stream
     this.buffer = Buffer.alloc(0)
     this.openTags = []
   }
 
-  async * [Symbol.asyncIterator] (stream = this._stream) {
+  async * [Symbol.asyncIterator](stream = this._stream) {
     for await (const tag of stream) {
       const chunk = this.processTag(tag)
       if (chunk) yield chunk
     }
   }
 
-  processTag (tag) {
+  processTag(tag) {
     if (tag) {
       if (!tag.id) throw new Error(`No id found for ${JSON.stringify(tag)}`)
       switch (tag.position) {
@@ -31,7 +31,7 @@ export default class EbmlIteratorEncoder {
     }
   }
 
-  constructBuffer (buffer) {
+  constructBuffer(buffer) {
     this.buffer = Buffer.concat([this.buffer, buffer])
     if (this.buffer.length > 0) {
       const chunk = Buffer.from(this.buffer)
@@ -40,7 +40,7 @@ export default class EbmlIteratorEncoder {
     }
   }
 
-  writeTag (tag) {
+  writeTag(tag) {
     if (this.openTags.length > 0) {
       this.openTags[this.openTags.length - 1].Children.push(tag)
     } else {
@@ -48,14 +48,14 @@ export default class EbmlIteratorEncoder {
     }
   }
 
-  startTag (tag) {
+  startTag(tag) {
     if (this.openTags.length > 0) {
       this.openTags[this.openTags.length - 1].Children.push(tag)
     }
     this.openTags.push(tag)
   }
 
-  endTag (tag) {
+  endTag(tag) {
     const inMemoryTag = this.openTags.pop()
     if (tag.id !== inMemoryTag.id) {
       throw new Error(`Logic error - closing tag "${EbmlTagId[tag.id]}" is not expected tag "${EbmlTagId[inMemoryTag.id]}"`)

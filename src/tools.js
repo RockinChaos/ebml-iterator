@@ -1,5 +1,5 @@
 export default class Tools {
-  static readVint (buffer, start = 0) {
+  static readVint(buffer, start = 0) {
     const length = 8 - Math.floor(Math.log2(buffer[start]))
     if (length > 8) {
       if (length === Infinity) throw new Error(`Unrepresentable length: ${length}`)
@@ -9,19 +9,20 @@ export default class Tools {
     if (isNaN(length) || start + length > buffer.length) {
       return null
     }
-    if (length === 8 && buffer[start + 1] >= 0x20 && buffer.subarray(start + 2, start + 8).some(i => i > 0x00)) {
+    const mask = (1 << (8 - length)) - 1
+    if ((buffer[start] & mask) === mask && buffer.subarray(start + 1, start + length).every(i => i === 0xff)) {
       return {
-        length: 8,
+        length,
         value: -1
       }
     }
-    let value = buffer[start] & ((1 << (8 - length)) - 1)
+    let value = buffer[start] & mask
     for (let i = 1; i < length; i += 1) {
       value *= Math.pow(2, 8)
       value += buffer[start + i]
     }
-    if (value === (Math.pow(2, (length * 7)) - 1)) {
-      value = -1
+    if (!Number.isSafeInteger(value)) {
+      throw new Error(`Unrepresentable VINT value: ${Tools.readHexString(buffer, start, start + length)}`)
     }
     return {
       length,
@@ -29,17 +30,23 @@ export default class Tools {
     }
   }
 
-  static writeVint (value, desiredLength) {
-    if (value < 0 || value > (Math.pow(2, 53))) {
+  static writeVint(value, desiredLength) {
+    if (!Number.isSafeInteger(value) || value < 0) {
       throw new Error(`Unrepresentable value: ${value}`)
     }
     let length = desiredLength
+    if (length && (!Number.isInteger(length) || length < 1 || length > 8)) {
+      throw new Error(`Invalid VINT length: ${length}`)
+    }
     if (!length) {
       for (length = 1; length <= 8; length += 1) {
         if (value < Math.pow(2, (7 * length)) - 1) {
           break
         }
       }
+    }
+    if (value >= Math.pow(2, (7 * length)) - 1) {
+      throw new Error(`Value ${value} cannot be represented in a ${length}-byte VINT`)
     }
     const buffer = Buffer.alloc(length)
     let val = value
@@ -53,7 +60,7 @@ export default class Tools {
     return buffer
   }
 
-  static padStart (val) {
+  static padStart(val) {
     if (val.length === 0) {
       return '00'
     }
@@ -63,21 +70,17 @@ export default class Tools {
     return val
   }
 
-  static readHexString (buff, start = 0, end = buff.byteLength) {
+  static readHexString(buff, start = 0, end = buff.byteLength) {
     return Array.from(buff.subarray(start, end))
       .map(q => Number(q).toString(16))
       .reduce((acc, current) => `${acc}${this.padStart(current)}`, '')
   }
 
-  static readUtf8 (buff) {
-    try {
-      return Buffer.from(buff).toString('utf8')
-    } catch (exception) {
-      return null
-    }
+  static readUtf8(buff) {
+    return Buffer.from(buff.buffer, buff.byteOffset, buff.byteLength).toString('utf8')
   }
 
-  static readUnsigned (buff) {
+  static readUnsigned(buff) {
     const b = new DataView(buff.buffer, buff.byteOffset, buff.byteLength)
     switch (buff.byteLength) {
       case 1:
@@ -100,23 +103,34 @@ export default class Tools {
     return hex
   }
 
-  static writeUnsigned (num) {
+  static writeUnsigned(num, desiredLength) {
     if (typeof num === 'string') {
-      return Buffer.from(num, 'hex')
-    } else {
-      const buf = Buffer.alloc(6)
-      buf.fill(0)
-      buf.writeUIntBE(num, 0, 6)
-      let firstValueIndex = buf.findIndex(b => b !== 0)
-      if (firstValueIndex === -1) {
-        firstValueIndex = buf.length - 1
+      const buffer = Buffer.from(num, 'hex')
+      if (desiredLength && buffer.length !== desiredLength) {
+        throw new Error(`Unsigned value does not fit in ${desiredLength} bytes`)
       }
-      const ret = buf.slice(firstValueIndex)
-      return ret
+      return buffer
+    } else {
+      if (!Number.isSafeInteger(num) || num < 0) {
+        throw new Error(`Unrepresentable unsigned value: ${num}`)
+      }
+      let length = desiredLength
+      if (length) {
+        if (!Number.isInteger(length) || length < 1 || length > 6 || num >= Math.pow(2, 8 * length)) {
+          throw new Error(`Unsigned value does not fit in ${length} bytes`)
+        }
+      } else {
+        length = 1
+        while (num >= Math.pow(2, 8 * length) && length < 6) length += 1
+        if (num >= Math.pow(2, 8 * length)) throw new Error(`Unrepresentable unsigned value: ${num}`)
+      }
+      const buffer = Buffer.alloc(length)
+      buffer.writeUIntBE(num, 0, length)
+      return buffer
     }
   }
 
-  static readSigned (buff) {
+  static readSigned(buff) {
     const b = new DataView(buff.buffer, buff.byteOffset, buff.byteLength)
     switch (buff.byteLength) {
       case 1:
@@ -130,13 +144,39 @@ export default class Tools {
     }
   }
 
-  static writeSigned (num) {
-    const buf = Buffer.alloc(8)
-    buf.writeInt32BE(num, 0)
+  static writeSigned(num, desiredLength) {
+    if (!Number.isSafeInteger(num)) {
+      throw new Error(`Unrepresentable signed value: ${num}`)
+    }
+    if (desiredLength) {
+      if (!Number.isInteger(desiredLength) || desiredLength < 1 || desiredLength > 6) {
+        throw new Error(`Invalid signed integer length: ${desiredLength}`)
+      }
+      const minimum = -Math.pow(2, (8 * desiredLength) - 1)
+      const maximum = Math.pow(2, (8 * desiredLength) - 1) - 1
+      if (num < minimum || num > maximum) {
+        throw new Error(`Signed value does not fit in ${desiredLength} bytes`)
+      }
+      const buffer = Buffer.alloc(desiredLength)
+      buffer.writeIntBE(num, 0, desiredLength)
+      return buffer
+    }
+    if (num >= -0x80 && num <= 0x7f) {
+      const buf = Buffer.alloc(1)
+      buf.writeInt8(num)
+      return buf
+    }
+    if (num >= -0x8000 && num <= 0x7fff) {
+      const buf = Buffer.alloc(2)
+      buf.writeInt16BE(num)
+      return buf
+    }
+    const buf = Buffer.alloc(4)
+    buf.writeInt32BE(num)
     return buf
   }
 
-  static readFloat (buff) {
+  static readFloat(buff) {
     const b = new DataView(buff.buffer, buff.byteOffset, buff.byteLength)
     switch (buff.byteLength) {
       case 4:
@@ -148,12 +188,24 @@ export default class Tools {
     }
   }
 
-  static writeFloat (num) {
-    let buf = Buffer.alloc(8)
-    const written = buf.writeFloatBE(num, 0)
-    if (written <= 4) {
-      buf = buf.slice(0, 4)
+  static writeFloat(num, desiredLength) {
+    if (desiredLength === 4) {
+      const buffer = Buffer.alloc(4)
+      buffer.writeFloatBE(num, 0)
+      return buffer
     }
-    return buf
+    if (desiredLength === 8) {
+      const buffer = Buffer.alloc(8)
+      buffer.writeDoubleBE(num, 0)
+      return buffer
+    }
+    if (desiredLength) throw new Error(`Invalid float length: ${desiredLength}`)
+    const float32 = Buffer.alloc(4)
+    float32.writeFloatBE(num, 0)
+    if (Object.is(float32.readFloatBE(0), num)) return float32
+
+    const float64 = Buffer.alloc(8)
+    float64.writeDoubleBE(num, 0)
+    return float64
   }
 }

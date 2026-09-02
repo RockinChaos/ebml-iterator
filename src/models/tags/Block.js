@@ -5,21 +5,21 @@ import EbmlTagId from '../enums/EbmlTagId.js'
 import EbmlElementType from '../enums/EbmlElementType.js'
 
 export default class Block extends EbmlDataTag {
-  constructor (subTypeId) {
+  constructor(subTypeId) {
     super(subTypeId || EbmlTagId.Block, EbmlElementType.Binary)
   }
 
-  writeTrackBuffer () {
+  writeTrackBuffer() {
     return Tools.writeVint(this.track)
   }
 
-  writeValueBuffer () {
+  writeValueBuffer() {
     const value = Buffer.alloc(2)
     value.writeInt16BE(this.value, 0)
     return value
   }
 
-  writeFlagsBuffer () {
+  writeFlagsBuffer() {
     let flags = 0x00
     if (this.invisible) {
       flags |= 0b1000
@@ -40,7 +40,7 @@ export default class Block extends EbmlDataTag {
     return Buffer.of(flags)
   }
 
-  encodeContent () {
+  encodeContent() {
     return Buffer.concat([
       this.writeTrackBuffer(),
       this.writeValueBuffer(),
@@ -49,8 +49,11 @@ export default class Block extends EbmlDataTag {
     ])
   }
 
-  parseContent (data) {
+  parseContent(data) {
     const track = Tools.readVint(data)
+    if (!track || data.length < track.length + 3) {
+      throw new Error('Incomplete Matroska block header')
+    }
     this.track = track.value
     this.value = Tools.readSigned(data.slice(track.length, track.length + 2))
     const flags = data[track.length + 2]

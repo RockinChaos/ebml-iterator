@@ -1,36 +1,38 @@
-import { createReadStream } from 'fs'
-import { EbmlIteratorDecoder, EbmlIteratorEncoder } from '../src/index.js'
-import { createHash } from 'crypto'
+import { createHash } from 'node:crypto'
+import { createReadStream } from 'node:fs'
+import { pipeline as _p, Readable } from 'node:stream'
+import { promisify } from 'node:util'
 import { EbmlStreamDecoder, EbmlStreamEncoder, EbmlTagId } from 'ebml-stream'
-import { pipeline as _p, Readable } from 'stream'
-import { promisify } from 'util'
+import { EbmlIteratorDecoder, EbmlIteratorEncoder } from '../src/index.js'
 
 const pipeline = promisify(_p)
 
 const files = ['video1.webm', 'video2.webm', 'video3.webm', 'video4.webm', 'test5.mkv']
 
-async function * encode (stream) {
+async function * encode(stream) {
   yield * new EbmlIteratorEncoder({ stream })
 }
-async function * decode (stream) {
+async function * decode(stream) {
   yield * new EbmlIteratorDecoder({ stream })
 }
 
+async function hashStream(stream) {
+  const hasher = createHash('sha1').setEncoding('hex')
+  await pipeline(stream, hasher)
+  return hasher.read()
+}
+
 for (const file of files) {
-  console.log(file)
-  const hasher1 = createHash('sha1').setEncoding('hex')
-  const stream1 = createReadStream('media/' + file)
-  await pipeline(stream1, hasher1)
+  console.log(`\n=== ${file} ===`)
 
-  const hash1 = hasher1.read()
-  console.log(hash1)
+  const originalHash = await hashStream(createReadStream('media/' + file))
+  console.log(`original:      ${originalHash}`)
 
-  const hasher2 = createHash('sha1').setEncoding('hex')
-  const stream2 = Readable.from(encode(decode(createReadStream('media/' + file))))
-  await pipeline(stream2, hasher2)
-
-  const hash2 = hasher2.read()
-  console.log(hash2)
+  const roundTripHash = await hashStream(Readable.from(encode(decode(createReadStream('media/' + file)))))
+  console.log(`ebml-iterator: ${roundTripHash} [${roundTripHash === originalHash ? 'match' : 'mismatch'}]`)
+  if (roundTripHash !== originalHash) {
+    throw new Error(`EBML iterator round-trip changed ${file}`)
+  }
 
   const ebmlDecoder = new EbmlStreamDecoder({
     bufferTagIds: [
@@ -39,9 +41,6 @@ for (const file of files) {
   })
   const ebmlEncoder = new EbmlStreamEncoder()
 
-  const hasher3 = createHash('sha1').setEncoding('hex')
-  await pipeline(createReadStream('media/' + file), ebmlDecoder, ebmlEncoder, hasher3)
-
-  const hash3 = hasher3.read()
-  console.log(hash3)
+  const ebmlStreamHash = await hashStream(createReadStream('media/' + file).pipe(ebmlDecoder).pipe(ebmlEncoder))
+  console.log(`ebml-stream:   ${ebmlStreamHash} [${ebmlStreamHash === originalHash ? 'match' : 'mismatch'}]`)
 }

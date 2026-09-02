@@ -6,7 +6,7 @@ import SimpleBlock from './tags/SimpleBlock.js'
 import EbmlElementType from './enums/EbmlElementType.js'
 
 export default class EbmlTagFactory {
-  static create (id, type) {
+  static create(id, type) {
     if (EbmlTagId[id] !== undefined) {
       let foundType
       switch (id) {

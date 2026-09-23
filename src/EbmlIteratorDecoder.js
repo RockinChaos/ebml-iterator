@@ -27,7 +27,7 @@ export default class EbmlIteratorDecoder {
   }
 
   * parseTags(chunk) {
-    const input = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+    const input = Buffer.from(chunk)
     this._buffer = this._buffer.length === 0 ? input : Buffer.concat([this._buffer, input])
     while (true) {
       const currentTag = this.readTagHeader(this._buffer)

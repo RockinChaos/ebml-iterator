@@ -11,6 +11,22 @@ import Tools from '../src/tools.js'
 import 'jasmine'
 
 describe('EBML robustness', () => {
+  it('owns partial input bytes after the caller reuses its Buffer', () => {
+    const decoder = new EbmlIteratorDecoder()
+    const input = Buffer.from([0xe7, 0x81])
+    assert.deepStrictEqual([...decoder.parseTags(input)], [])
+    input.fill(0)
+    const [tag] = [...decoder.parseTags(Buffer.from([100]))]
+    assert.strictEqual(tag.data, 100)
+  })
+
+  it('owns emitted block payloads after the caller reuses its Buffer', () => {
+    const input = Buffer.from([0xa3, 0x85, 0x81, 0x00, 0x00, 0x80, 0x41])
+    const [tag] = [...new EbmlIteratorDecoder().parseTags(input)]
+    input.fill(0)
+    assert.strictEqual(tag.payload.toString(), 'A')
+  })
+
   it('does not buffer unknown-size masters requested as buffered tags', async () => {
     async function * stream() {
       yield Buffer.from([0xa0, 0xff, 0xe7, 0x81, 0x00])

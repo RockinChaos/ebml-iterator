@@ -9,11 +9,11 @@ const pipeline = promisify(_p)
 
 const files = ['video1.webm', 'video2.webm', 'video3.webm', 'video4.webm', 'test5.mkv']
 
-async function * encode(stream) {
-  yield * new EbmlIteratorEncoder({ stream })
+async function* encode(stream) {
+  yield* new EbmlIteratorEncoder({ stream })
 }
-async function * decode(stream) {
-  yield * new EbmlIteratorDecoder({ stream })
+async function* decode(stream) {
+  yield* new EbmlIteratorDecoder({ stream })
 }
 
 async function hashStream(stream) {
@@ -35,12 +35,14 @@ for (const file of files) {
   }
 
   const ebmlDecoder = new EbmlStreamDecoder({
-    bufferTagIds: [
-      EbmlTagId.TrackEntry
-    ]
+    bufferTagIds: [EbmlTagId.TrackEntry]
   })
   const ebmlEncoder = new EbmlStreamEncoder()
 
-  const ebmlStreamHash = await hashStream(createReadStream('media/' + file).pipe(ebmlDecoder).pipe(ebmlEncoder))
+  const ebmlStreamHash = await hashStream(
+    createReadStream('media/' + file)
+      .pipe(ebmlDecoder)
+      .pipe(ebmlEncoder)
+  )
   console.log(`ebml-stream:   ${ebmlStreamHash} [${ebmlStreamHash === originalHash ? 'match' : 'mismatch'}]`)
 }

@@ -7,6 +7,12 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
+    "lint": "eslint src test eslint.config.js",
+    "lint:fix": "eslint src test eslint.config.js --fix",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier src test .github package.json tsconfig.json eslint.config.js .prettierrc.json \"*.md\" --write --no-error-on-unmatched-pattern",
+    "format:check": "prettier src test .github package.json tsconfig.json eslint.config.js .prettierrc.json \"*.md\" --check --no-error-on-unmatched-pattern",
+    "check": "run-s lint typecheck format:check test",
     "test": "jasmine test/*",
     "reencode": "node test/reencode.spec.js"
   },
@@ -32,8 +38,15 @@
     "src/*"
   ],
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "24.13.6",
     "assert": "^2.1.0",
     "ebml-stream": "^1.0.3",
-    "jasmine": "^7.0.0"
+    "eslint": "^10.11.0",
+    "globals": "^17.12.0",
+    "jasmine": "^7.0.0",
+    "npm-run-all2": "^9.0.3",
+    "prettier": "^3.9.9",
+    "typescript": "6.0.3"
   }
 }

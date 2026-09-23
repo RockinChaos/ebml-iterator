@@ -35,11 +35,9 @@ export default class EbmlMasterTag extends EbmlTag {
       }
       let tagId = 0
       for (let index = 0; index < tag.length; index += 1) {
-        tagId = (tagId * 256) + content[index]
+        tagId = tagId * 256 + content[index]
       }
-      const tagObject = EbmlTagFactory.create(tagId)
-      tagObject.sizeLength = size.length
-      tagObject.size = size.value
+      const tagObject = Object.assign(EbmlTagFactory.create(tagId), { sizeLength: size.length, size: size.value })
       const totalTagLength = headerLength + contentLength
       tagObject.parseContent(content.slice(headerLength, totalTagLength))
       this._children.push(tagObject)

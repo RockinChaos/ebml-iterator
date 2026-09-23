@@ -16,17 +16,15 @@ export default class EbmlTag {
     return Buffer.from(tagHex, 'hex')
   }
 
+  /** @this {EbmlTag & {size?: number, sizeLength?: number, encodeContent: () => Buffer}} */
   encode() {
-    let vintSize = null
+    let vintSize
     const content = this.encodeContent()
     if (this.size === -1) {
       vintSize = Buffer.from('01ffffffffffffff', 'hex')
     } else {
       let specialLength = this.sizeLength
-      if ([
-        EbmlTagId.Segment,
-        EbmlTagId.Cluster
-      ].some(i => i === this.id) && !specialLength) {
+      if ([EbmlTagId.Segment, EbmlTagId.Cluster].some(i => i === this.id) && !specialLength) {
         specialLength = 8
       }
       if (specialLength && content.length >= Math.pow(2, 7 * specialLength) - 1) {
@@ -34,10 +32,6 @@ export default class EbmlTag {
       }
       vintSize = Tools.writeVint(content.length, specialLength)
     }
-    return Buffer.concat([
-      this.getTagDeclaration(),
-      vintSize,
-      content
-    ])
+    return Buffer.concat([this.getTagDeclaration(), vintSize, content])
   }
 }

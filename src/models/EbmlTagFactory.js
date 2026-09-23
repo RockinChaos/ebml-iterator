@@ -260,7 +260,9 @@ export default class EbmlTagFactory {
         type = foundType
       } else {
         if (type !== foundType) {
-          throw new Error(`Trying to create tag of well-known type "${EbmlTagId[id]}" using content type "${type}" (which is incorrect).  Either pass the correct type or ignore the type parameter to EbmlTag.create()`)
+          throw new Error(
+            `Trying to create tag of well-known type "${EbmlTagId[id]}" using content type "${type}" (which is incorrect).  Either pass the correct type or ignore the type parameter to EbmlTag.create()`
+          )
         }
       }
     }

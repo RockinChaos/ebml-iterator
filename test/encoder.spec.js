@@ -1,4 +1,3 @@
-/* global describe, it, beforeAll */
 import assert from 'assert'
 import EbmlIteratorEncoder from '../src/EbmlIteratorEncoder.js'
 import 'jasmine'
@@ -44,10 +43,7 @@ describe('EBML Encoder', () => {
       for (const item of data) {
         const chunk = encoder.processTag(item)
         if (chunk) {
-          assert.strictEqual(
-            Buffer.from(chunk).toString('hex'),
-            Buffer.from(expected).toString('hex')
-          )
+          assert.strictEqual(Buffer.from(chunk).toString('hex'), Buffer.from(expected).toString('hex'))
           done()
         }
       }
@@ -57,11 +53,7 @@ describe('EBML Encoder', () => {
       createEncoder([0x42, 0x86, 0x81, 0x01], done, [ebmlVersion1Tag])
     })
     it('should write a tag with a single child', done => {
-      createEncoder(
-        [0x1a, 0x45, 0xdf, 0xa3, 0x84, 0x42, 0x86, 0x81, 0x00],
-        done,
-        [ebmlStartTag, ebmlVersion0Tag, ebmlEndTag]
-      )
+      createEncoder([0x1a, 0x45, 0xdf, 0xa3, 0x84, 0x42, 0x86, 0x81, 0x00], done, [ebmlStartTag, ebmlVersion0Tag, ebmlEndTag])
     })
     describe('#writeTag', () => {
       let encoder

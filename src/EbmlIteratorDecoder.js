@@ -16,9 +16,9 @@ export default class EbmlIteratorDecoder {
     return this._buffer
   }
 
-  async * [Symbol.asyncIterator](stream = this._stream) {
+  async *[Symbol.asyncIterator](stream = this._stream) {
     for await (const chunk of stream) {
-      yield * this.parseTags(chunk)
+      yield* this.parseTags(chunk)
     }
     // Unknown-size tags stay open until the stream ends.
     while (this._tagStack.length > 0 && this._tagStack[this._tagStack.length - 1].size === -1) {
@@ -26,7 +26,7 @@ export default class EbmlIteratorDecoder {
     }
   }
 
-  * parseTags(chunk) {
+  *parseTags(chunk) {
     const input = Buffer.from(chunk)
     this._buffer = this._buffer.length === 0 ? input : Buffer.concat([this._buffer, input])
     while (true) {
@@ -56,7 +56,7 @@ export default class EbmlIteratorDecoder {
         this.advanceBuffer(currentTag.tagHeaderLength + currentTag.size)
         while (this._tagStack.length > 0) {
           const nextTag = this._tagStack[this._tagStack.length - 1]
-          if (nextTag.size === -1 || this._currentBufferOffset < (nextTag.absoluteStart + nextTag.tagHeaderLength + nextTag.size)) {
+          if (nextTag.size === -1 || this._currentBufferOffset < nextTag.absoluteStart + nextTag.tagHeaderLength + nextTag.size) {
             break
           }
           yield this.createTag(nextTag, EbmlTagPosition.End)
@@ -82,24 +82,24 @@ export default class EbmlIteratorDecoder {
 
     let tagId = 0
     for (let index = offset; index < offset + tag.length; index += 1) {
-      tagId = (tagId * 256) + buffer[index]
+      tagId = tagId * 256 + buffer[index]
     }
-    const tagObject = EbmlTagFactory.create(tagId)
-    tagObject.size = size.value
-    tagObject.sizeLength = size.length
-    return Object.assign(tagObject, {
+    return Object.assign(EbmlTagFactory.create(tagId), {
+      size: size.value,
+      sizeLength: size.length,
       absoluteStart: this._currentBufferOffset + offset,
       tagHeaderLength: tag.length + size.length
     })
   }
 
   createTag(tag, position, data) {
-    const emittedTag = EbmlTagFactory.create(tag.id)
-    emittedTag.absoluteStart = tag.absoluteStart
-    emittedTag.tagHeaderLength = tag.tagHeaderLength
-    emittedTag.size = tag.size
-    emittedTag.sizeLength = tag.sizeLength
-    emittedTag.position = position
+    const emittedTag = Object.assign(EbmlTagFactory.create(tag.id), {
+      absoluteStart: tag.absoluteStart,
+      tagHeaderLength: tag.tagHeaderLength,
+      size: tag.size,
+      sizeLength: tag.sizeLength,
+      position
+    })
     if (position === EbmlTagPosition.Content) {
       emittedTag.parseContent(data)
     }

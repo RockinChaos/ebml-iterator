@@ -31,6 +31,7 @@ export default class EbmlDataTag extends EbmlTag {
     }
   }
 
+  /** @this {EbmlDataTag & {size?: number}} */
   encodeContent() {
     switch (this.type) {
       case EbmlElementType.UnsignedInt:

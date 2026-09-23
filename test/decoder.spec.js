@@ -1,4 +1,3 @@
-/* global describe, it */
 import assert from 'assert'
 import EbmlIteratorDecoder from '../src/EbmlIteratorDecoder.js'
 import 'jasmine'
@@ -48,7 +47,7 @@ describe('EBML Decoder', () => {
     })
 
     it('should emit correct tag events for simple data', async () => {
-      async function * stream() {
+      async function* stream() {
         yield Buffer.from([0x42, 0x86, 0x81, 0x01])
       }
       const decoder = new EbmlIteratorDecoder({ stream: stream() })
@@ -63,7 +62,7 @@ describe('EBML Decoder', () => {
     })
 
     it('should emit correct EBML tag events for master tags', async () => {
-      async function * data() {
+      async function* data() {
         yield Buffer.from([0x1a, 0x45, 0xdf, 0xa3, 0x80])
       }
 
@@ -83,7 +82,7 @@ describe('EBML Decoder', () => {
     })
 
     it('should emit correct EBML:end events for master tags', async () => {
-      async function * stream() {
+      async function* stream() {
         yield Buffer.from([0x1a, 0x45, 0xdf, 0xa3])
         yield Buffer.from([0x84, 0x42, 0x86, 0x81, 0x00])
       }
@@ -103,7 +102,7 @@ describe('EBML Decoder', () => {
     })
 
     it('keeps an unknown-size master open until the stream ends', async () => {
-      async function * stream() {
+      async function* stream() {
         yield Buffer.from([0x1a, 0x45, 0xdf, 0xa3, 0xff, 0x42, 0x86, 0x82, 0x00, 0x01])
       }
       const tags = []
@@ -111,11 +110,10 @@ describe('EBML Decoder', () => {
         tags.push(tag)
       }
 
-      assert.deepStrictEqual(tags.map(tag => tag.position), [
-        EbmlTagPosition.Start,
-        EbmlTagPosition.Content,
-        EbmlTagPosition.End
-      ])
+      assert.deepStrictEqual(
+        tags.map(tag => tag.position),
+        [EbmlTagPosition.Start, EbmlTagPosition.Content, EbmlTagPosition.End]
+      )
       assert.strictEqual(tags[0].size, -1)
       assert.strictEqual(tags[0].sizeLength, 1)
     })

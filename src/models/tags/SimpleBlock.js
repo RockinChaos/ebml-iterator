@@ -15,12 +15,7 @@ export default class SimpleBlock extends Block {
     if (this.discardable) {
       flags[0] |= 0x01
     }
-    return Buffer.concat([
-      this.writeTrackBuffer(),
-      this.writeValueBuffer(),
-      flags,
-      this.payload
-    ])
+    return Buffer.concat([this.writeTrackBuffer(), this.writeValueBuffer(), flags, this.payload])
   }
 
   parseContent(data) {

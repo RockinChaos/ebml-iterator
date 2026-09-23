@@ -41,12 +41,7 @@ export default class Block extends EbmlDataTag {
   }
 
   encodeContent() {
-    return Buffer.concat([
-      this.writeTrackBuffer(),
-      this.writeValueBuffer(),
-      this.writeFlagsBuffer(),
-      this.payload
-    ])
+    return Buffer.concat([this.writeTrackBuffer(), this.writeValueBuffer(), this.writeFlagsBuffer(), this.payload])
   }
 
   parseContent(data) {

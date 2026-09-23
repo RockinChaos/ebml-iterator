@@ -40,12 +40,12 @@ export default class Tools {
     }
     if (!length) {
       for (length = 1; length <= 8; length += 1) {
-        if (value < Math.pow(2, (7 * length)) - 1) {
+        if (value < Math.pow(2, 7 * length) - 1) {
           break
         }
       }
     }
-    if (value >= Math.pow(2, (7 * length)) - 1) {
+    if (value >= Math.pow(2, 7 * length) - 1) {
       throw new Error(`Value ${value} cannot be represented in a ${length}-byte VINT`)
     }
     const buffer = Buffer.alloc(length)
@@ -152,8 +152,8 @@ export default class Tools {
       if (!Number.isInteger(desiredLength) || desiredLength < 1 || desiredLength > 6) {
         throw new Error(`Invalid signed integer length: ${desiredLength}`)
       }
-      const minimum = -Math.pow(2, (8 * desiredLength) - 1)
-      const maximum = Math.pow(2, (8 * desiredLength) - 1) - 1
+      const minimum = -Math.pow(2, 8 * desiredLength - 1)
+      const maximum = Math.pow(2, 8 * desiredLength - 1) - 1
       if (num < minimum || num > maximum) {
         throw new Error(`Signed value does not fit in ${desiredLength} bytes`)
       }

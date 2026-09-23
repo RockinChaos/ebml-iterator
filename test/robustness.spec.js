@@ -1,4 +1,3 @@
-/* global describe, it */
 import assert from 'assert'
 import EbmlIteratorDecoder from '../src/EbmlIteratorDecoder.js'
 import Block from '../src/models/tags/Block.js'
@@ -28,7 +27,7 @@ describe('EBML robustness', () => {
   })
 
   it('does not buffer unknown-size masters requested as buffered tags', async () => {
-    async function * stream() {
+    async function* stream() {
       yield Buffer.from([0xa0, 0xff, 0xe7, 0x81, 0x00])
     }
     const tags = []
@@ -39,39 +38,31 @@ describe('EBML robustness', () => {
       tags.push(tag)
     }
 
-    assert.deepStrictEqual(tags.map(tag => [tag.id, tag.position]), [
-      [EbmlTagId.BlockGroup, EbmlTagPosition.Start],
-      [EbmlTagId.Timecode, EbmlTagPosition.Content],
-      [EbmlTagId.BlockGroup, EbmlTagPosition.End]
-    ])
+    assert.deepStrictEqual(
+      tags.map(tag => [tag.id, tag.position]),
+      [
+        [EbmlTagId.BlockGroup, EbmlTagPosition.Start],
+        [EbmlTagId.Timecode, EbmlTagPosition.Content],
+        [EbmlTagId.BlockGroup, EbmlTagPosition.End]
+      ]
+    )
   })
 
   it('closes an unknown-size Cluster before the next Cluster', async () => {
-    async function * stream() {
-      yield Buffer.from([
-        0x1f, 0x43, 0xb6, 0x75, 0xff, 0xe7, 0x81, 0x00,
-        0x1f, 0x43, 0xb6, 0x75, 0xff, 0xe7, 0x81, 0x01
-      ])
+    async function* stream() {
+      yield Buffer.from([0x1f, 0x43, 0xb6, 0x75, 0xff, 0xe7, 0x81, 0x00, 0x1f, 0x43, 0xb6, 0x75, 0xff, 0xe7, 0x81, 0x01])
     }
     const positions = []
     for await (const tag of new EbmlIteratorDecoder({ stream: stream() })) {
       if (tag.id === EbmlTagId.Cluster) positions.push(tag.position)
     }
 
-    assert.deepStrictEqual(positions, [
-      EbmlTagPosition.Start,
-      EbmlTagPosition.End,
-      EbmlTagPosition.Start,
-      EbmlTagPosition.End
-    ])
+    assert.deepStrictEqual(positions, [EbmlTagPosition.Start, EbmlTagPosition.End, EbmlTagPosition.Start, EbmlTagPosition.End])
   })
 
   it('rejects unsafe eight-byte VINT values without mistaking them for unknown sizes', () => {
     assert.strictEqual(Tools.readVint(Buffer.from('01ffffffffffffff', 'hex')).value, -1)
-    assert.throws(
-      () => Tools.readVint(Buffer.from('0120010000000000', 'hex')),
-      /Unrepresentable VINT value/
-    )
+    assert.throws(() => Tools.readVint(Buffer.from('0120010000000000', 'hex')), /Unrepresentable VINT value/)
     assert.throws(() => Tools.writeVint(127, 1), /cannot be represented/)
   })
 

@@ -2,13 +2,14 @@ import EbmlTagPosition from './models/enums/EbmlTagPosition.js'
 import EbmlTagId from './models/enums/EbmlTagId.js'
 
 export default class EbmlIteratorEncoder {
+  /** @param {{stream?: AsyncIterable<import('./models/EbmlTag.js').default>}} [options] */
   constructor({ stream } = {}) {
     this._stream = stream
     this.buffer = Buffer.alloc(0)
     this.openTags = []
   }
 
-  async * [Symbol.asyncIterator](stream = this._stream) {
+  async *[Symbol.asyncIterator](stream = this._stream) {
     for await (const tag of stream) {
       const chunk = this.processTag(tag)
       if (chunk) yield chunk
